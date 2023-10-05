@@ -13,11 +13,14 @@ file in a relevant directory) where a recipient would be likely to look
 for such a notice.
 *************************************************************************/
 
-#ifndef CoCo - IMU
-#define CoCo -IMU
+#ifndef COCO_IMU_H
+#define COCO_IMU_H
 
 #include <Arduino.h>
 #include <Deneyap_6EksenAtaletselOlcumBirimi.h>
+
+//* CONSTANTS
+#define GRAVITAIONAL_ACCELERATION 9.80665
 
 struct TwoDimentionalCartesian {
 	float x, y;
@@ -73,7 +76,6 @@ class IMU {
     float gyroMinMax(float, float);
 
 	public:
-    const float CONST_g = 9.80665;
 
 	IMU(int, int, LSM6DSM &);
 	void startIMU();

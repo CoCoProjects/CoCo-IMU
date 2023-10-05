@@ -78,9 +78,9 @@ void IMU::gatherData() {
     accelG.x = allAxesFloatData[3];
     accelG.y = allAxesFloatData[4];
     accelG.z = allAxesFloatData[5];
-    accelMps2.x = accelG.x * CONST_g;
-    accelMps2.y = accelG.y * CONST_g;
-    accelMps2.z = accelG.z * CONST_g;
+    accelMps2.x = accelG.x * GRAVITAIONAL_ACCELERATION;
+    accelMps2.y = accelG.y * GRAVITAIONAL_ACCELERATION;
+    accelMps2.z = accelG.z * GRAVITAIONAL_ACCELERATION;
 
     calculateAngles();
 
