@@ -34,7 +34,7 @@ void IMU::startIMU() {
 }
 
 void IMU::calibrateGyro() {
-	/* ------------------------- Start calibration sequence ------------------------ */
+	/* SECTION - Start Gyro Calibration */
 
 	Serial.println("Gyro calibration will start please don't touch the plane");
 	delay(calibrationDelay);
@@ -62,33 +62,18 @@ void IMU::calibrateGyro() {
 
 	Serial.println("Gyro calibration finished");
 
-	/* ------------------------- End calibration sequence ------------------------ */
+	/* !SECTION - End Gyro Calibration */
 }
 
-float gyroMinMax(float data, float errorData) {
-	return ((data - errorData) > 1 || (data - errorData < -1)) ? data - errorData : 0;
-}
-
-void IMU::gatherData() {
-	float *allAxesFloatData = new float[7]; // All axes float values
-	IMU_REF.readAllAxesFloatData(allAxesFloatData);
-	gyro.pitch = gyroMinMax(allAxesFloatData[0], gyroError.pitch);
-    gyro.roll = gyroMinMax(allAxesFloatData[1], gyroError.roll);
-    gyro.yaw = gyroMinMax(allAxesFloatData[2], gyroError.yaw);
-    accelG.x = allAxesFloatData[3];
-    accelG.y = allAxesFloatData[4];
-    accelG.z = allAxesFloatData[5];
-    accelMps2.x = accelG.x * GRAVITAIONAL_ACCELERATION;
-    accelMps2.y = accelG.y * GRAVITAIONAL_ACCELERATION;
-    accelMps2.z = accelG.z * GRAVITAIONAL_ACCELERATION;
-
-    calculateAngles();
+void IMU::calculateAndFilterAngles() {
+	/* SECTION - Angle Calculations */
+	calculatedAngle.pitch = atan(accelG.y / sqrt(pow(accelG.x, 2) + pow(accelG.z, 2))) * 180 / PI;
+	calculatedAngle.roll = -atan(accelG.x / sqrt(pow(accelG.y, 2) + pow(accelG.z, 2))) * 180 / PI;
 
 	// filter angle
 	kalman1DFilter(kalmanAngle.pitch, kalmanUncertainityAngle.pitch, gyro.pitch, calculatedAngle.pitch);
 	kalman1DFilter(kalmanAngle.roll, kalmanUncertainityAngle.roll, gyro.roll, calculatedAngle.roll);
-
-    delete[] allAxesFloatData; // Free the memory of allAxes
+	/* !SECTION - End Angle Calculations */
 }
 
 void IMU::kalman1DFilter(float &KalmanState, float &KalmanUncertainity, float KalmanInput, float KalmanMeasurement) {
@@ -97,4 +82,32 @@ void IMU::kalman1DFilter(float &KalmanState, float &KalmanUncertainity, float Ka
 	float KalmanGain = KalmanUncertainity / (KalmanUncertainity + 3 * 3);
 	KalmanState = KalmanState + KalmanGain * (KalmanMeasurement - KalmanState);
 	KalmanUncertainity = (1 - KalmanGain) * KalmanUncertainity;
+}
+
+// SECTION - Clamp the gyro data
+float gyroMinMax(float data, float errorData) {
+	return ((data - errorData) > 1 || (data - errorData < -1)) ? data - errorData : 0;
+}
+/* !SECTION - End Clamp the gyro data */
+
+void IMU::gatherData() {
+	/* SECTION - Data Gathering*/
+	float *allAxesFloatData = new float[7]; // All axes float values
+	IMU_REF.readAllAxesFloatData(allAxesFloatData);
+	gyro.pitch = gyroMinMax(allAxesFloatData[0], gyroError.pitch);
+	gyro.roll = gyroMinMax(allAxesFloatData[1], gyroError.roll);
+	gyro.yaw = gyroMinMax(allAxesFloatData[2], gyroError.yaw);
+
+	accelG.x = allAxesFloatData[3];
+	accelG.y = allAxesFloatData[4];
+	accelG.z = allAxesFloatData[5];
+
+	accelMps2.x = accelG.x * GRAVITAIONAL_ACCELERATION;
+	accelMps2.y = accelG.y * GRAVITAIONAL_ACCELERATION;
+	accelMps2.z = accelG.z * GRAVITAIONAL_ACCELERATION;
+
+	delete[] allAxesFloatData; // Free the memory of allAxes
+	/* !SECTION - End Data Gathering */
+
+	calculateAndFilterAngles(); //
 }

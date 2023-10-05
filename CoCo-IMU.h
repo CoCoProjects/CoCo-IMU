@@ -12,7 +12,6 @@ file, then You may include the notice in a location (such as a LICENSE
 file in a relevant directory) where a recipient would be likely to look
 for such a notice.
 *************************************************************************/
-
 #ifndef COCO_IMU_H
 #define COCO_IMU_H
 
@@ -40,8 +39,8 @@ struct ThreeDimentionalAngular {
 
 class IMU {
 	private:
-	int imuAddress, calibrationDelay;
 	LSM6DSM &IMU_REF;
+	int imuAddress, calibrationDelay;
 
 	// Data vars
 	ThreeDimentionalAngular gyro = {
@@ -71,7 +70,7 @@ class IMU {
             .pitch = 0,
             .roll = 0};
 
-	void calculateAngles();
+	void calculateAndFilterAngles();
 	void kalman1DFilter(float &, float &, float, float);
     float gyroMinMax(float, float);
 
